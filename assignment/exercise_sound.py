@@ -19,21 +19,25 @@ def playtone(frequency: float, duration: float) -> None:
     speaker.duty_u16(1000)
     speaker.freq(frequency)
     utime.sleep(duration)
+    quiet()
 
 
 def quiet():
     speaker.duty_u16(0)
 
+C = 523
+E = 659
+G = 784
 
-freq: float = 30
-duration: float = 0.1  # seconds
+mario_song = [ (E, 0.2), (E, 0.2), (0, 0.1), (E, 0.2), (0, 0.1), 
+              (C, 0.2), (E, 0.2), (G, 0.4)]
 
-print("Playing frequency (Hz):")
-
-for i in range(64):
-    print(freq)
-    playtone(freq, duration)
-    freq = int(freq * 1.1)
+for note, duration in mario_song:
+    if note == 0:
+        quiet()
+    else:
+        playtone(note, duration)
+    utime.sleep(0.05)
 
 # Turn off the PWM
 quiet()

@@ -23,8 +23,10 @@ Experiment using exercise_light.py to find approximate max_bright and min_bright
 * min_bright: make the LED duty cycle about 0% when in very dim light (dark room, covered with hand)
 
 1. what are the "max_bright" and "min_bright" values you found?
+The maximum brightness we got was 53773 and the minimum brightness we got was 896
 
 ## Notes
 
 Pico MicroPython time.sleep() doesn't error for negative values even though such are obviously incorrect--it is undefined for a system to sleep for negative time.
 Duty cycle greater than 1 is undefined, so we clip the duty cycle to the range [0, 1].
+
