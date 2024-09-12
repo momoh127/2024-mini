@@ -8,7 +8,7 @@ import random
 import json
 
 
-N: int = 3
+N: int = 10
 sample_ms = 10.0
 on_ms = 500
 
@@ -51,6 +51,15 @@ def scorer(t: list[int | None]) -> None:
     print(f"You missed the light {misses} / {len(t)} times")
 
     t_good = [x for x in t if x is not None]
+
+    if t_good:
+        average_time = sum(t_good) / len(t_good)
+        min_time = min(t_good)
+        max_time = max(t_good)
+
+    else:
+        average_time = min_time = max_time = None
+    
 
     print(t_good)
 
