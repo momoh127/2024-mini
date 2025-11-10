@@ -1,0 +1,416 @@
+{%- assign bundle_img_src = '' -%}
+{%- assign original_media = product.featured_image -%}
+{% assign complimenatary_product ='' %}
+{%- if product.handle == 'nira-pro-laser' -%}
+{%- assign bundle_img_src = 'https://cdn.shopify.com/s/files/1/0073/0231/6068/files/pro__collection_2.png?v=1754589147' -%}
+{% assign complimenatary_product = all_products['nira-pro-laser-w-topicals'] %}
+{%- elsif product.handle == 'nira-skincare-laser-device-only' -%}
+{%- assign bundle_img_src = 'https://cdn.shopify.com/s/files/1/0073/0231/6068/files/WebsitePDPPhotos_51_9c9ba8e9-f2f8-4f0c-a01f-0d4e1ea4833c.jpg?v=1708119587' -%}
+{% assign complimenatary_product = all_products['nira-precision-laser-and-serum-collection'] %}
+{%- elsif product.handle == 'nira-plus-laser-bundle' -%}
+{%- assign bundle_img_src = 'https://cdn.shopify.com/s/files/1/0073/0231/6068/files/01_30_NIRA3440white.jpg?v=1759443100' -%}
+{% assign complimenatary_product = all_products['ultimate-anti-aging-collection'] %}
+{%- endif -%}
+{% assign product_id = product.selected_or_first_available_variant.id %}
+{%- assign extra_product = all_products['copy-of-nira-skincare-collection'] -%}
+<script>console.log("complimenatry",{{ complimenatary_product|json }})</script>
+{%- if extra_product and extra_product.variants.size > 0 -%}
+<div id="original-media-holder" data-original-src="{{ original_media }}"></div>
+<div class="bundle-price-selector" id="bundle-option" data-bundle-img="{{ bundle_img_src }}">
+<label class="bundle-option-label">
+ <div class="bundle-row">
+ <input
+ type="radio"
+ id="bundle-radio"
+ name="bundle-option"
+ class="bundle-radio"
+ value="bundle"
+ aria-label="Bundle: {{ product.title }} + {{ extra_product.title }}"
+ >
+ <img class="bundle-thumb" src="{{ bundle_img_src }}" alt="{{ product.title }}" width="64" height="64" loading="lazy">
+ <div>
+ <div class="bundle-title">
+ {% comment %} {{ product.title }} + {{ extra_product.title }} {% endcomment %}
+ {{complimenatary_product.title}}
+ </div>
+ <div>
+ {% render 'price', product: complimenatary_product %}
+ </div>
+ </div>
+ </div>
+ <div class="bundle-below">
+ <ul class="bundle-option-list">
+ {% comment %} <li>{{product.title}}r</li> {% endcomment %}
+ <li>Frequency: Skincare Bundle delivery every 3 months</li>
+ <li>Enjoy Radiant Skincare for only $160 every 3 months</li>
+ </ul>
+ </div>
+</label>
+</div>
+{%- endif -%}
+<style>
+.bundle-option-label {
+background: #fff;
+border: 1px solid #DEDDDA;
+border-radius: 10px;
+padding: 12px;
+display: flex;
+flex-direction: column;
+gap: 10px;
+cursor: pointer;
+}
+.bundle-row {
+display: flex;
+align-items: center;
+gap: 12px;
+}
+.bundle-thumb {
+width: 64px;
+height: 64px;
+object-fit: cover;
+border-radius: 8px;
+border: 1px solid #eee;
+}
+.bundle-option-label input[type="radio"] {
+appearance: none;
+-webkit-appearance: none;
+width: 24px;
+height: 24px;
+border: 1px solid black;
+border-radius: 50%;
+margin-right: 10px;
+outline: none;
+cursor: pointer;
+flex-shrink: 0;
+}
+.bundle-option-label input[type="radio"]:checked {
+background: #d88fa0;
+border-color: #d88fa0;
+}
+.bundle-option-label input[type="radio"]:checked::after {
+content: "";
+position: absolute;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+width: 12px;
+height: 12px;
+background-color: white;
+border-radius: 50%;
+}
+.bundle-price-selector:has(.bundle-radio:checked) .bundle-option-label {
+border-color: #d88fa0;
+background-color: #fff7fa;
+}
+.bundle-title {
+display: grid;
+grid-template-columns: 1fr auto;
+gap: 0.5rem;
+{% comment %} font-weight: bold; {% endcomment %}
+text-transform: uppercase;
+color: #333;
+}
+.bundle-option-list {
+padding-left: 18px;
+font-size: 14px;
+}
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+console.log('current product',{{ product|json }})
+console.log('skincare',{{ extra_product|json }})
+console.log('pro_bund',{{ pro_bundle_id|json }})
+
+const STORAGE_KEY = 'nira_selected_option';
+const PRODUCT_HANDLE = {{ product.handle | json }};
+
+function saveSelectedOption(optionValue) {
+  try {
+    localStorage.setItem(STORAGE_KEY + '_' + PRODUCT_HANDLE, optionValue);
+    console.log('💾 Saved selection:', optionValue);
+  } catch (e) {
+    console.warn('localStorage not available:', e);
+  }
+}
+
+function getSelectedOption() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY + '_' + PRODUCT_HANDLE);
+    console.log('📖 Retrieved selection:', saved);
+    return saved || 'bundle';
+  } catch (e) {
+    console.warn('localStorage not available:', e);
+    return 'bundle';
+  }
+}
+
+const bundleRadio = document.getElementById('bundle-radio');
+const purchaseRadio = document.getElementById('flex-pricing-option-1');
+const purchaseOptionDiv = document.getElementById('fragile-non-subscription-option');
+const subscribeRadio = document.getElementById('flex-pricing-option-2');
+const subscribeOptionDiv = document.getElementById('fragile-subscription-option');
+const subscribeBtn = document.getElementById('fragile-subscribe');
+const addToCartBtns = document.querySelectorAll('.product__block--buy_buttons');
+const addToCartButtons = document.querySelectorAll('.product-form__buttons');
+const mainImgEl = document.querySelector('.product__media.media-wrapper img');
+const bundleImgSrc = document.getElementById('bundle-option')?.getAttribute('data-bundle-img');
+const sticky_atc = document.querySelector('.sticky-atc-bar')
+const selectedOption = document.querySelector('.fragile-pricing-option')
+const fragileBenefits = document.querySelectorAll('.fragile-pricing-option-benefits');
+
+if (!bundleRadio || !purchaseRadio || !subscribeRadio) {
+ console.log('One or more radio buttons are missing');
+ return;
+}
+
+let originalMedia = {{original_media|json}};
+
+function getActiveMediaImg() {
+ const active = document.querySelector('.product__media-gallery-viewer .swiper-slide-active img');
+ if (active) return active;
+ return document.querySelector('.product__media-gallery-viewer img');
+}
+
+function swapMainMedia(toSrc) {
+ if (!toSrc) return;
+ const imgEl = getActiveMediaImg();
+ if (!imgEl) return;
+ if (!originalMedia) {
+ originalMedia = {
+ el: imgEl,
+ src: imgEl.getAttribute('src'),
+ srcset: imgEl.getAttribute('srcset')
+ };
+ }
+ imgEl.setAttribute('src', toSrc);
+ imgEl.setAttribute('srcset', toSrc);
+}
+
+function hideStickyATC(){
+ if (sticky_atc) sticky_atc.style.display = "none";
+}
+
+function showstickyATC(){
+ if (sticky_atc) sticky_atc.style.display = "";
+}
+
+function changeMainThumb(bundleSrc) {
+ const thumb = document.querySelector('.bundle-thumb');
+ console.log('change bundle func')
+ if (!thumb) return;
+ thumb.src = bundleSrc;
+}
+
+function changeAllThumbs(src) {
+ document.querySelectorAll('.img-thumb').forEach(img => {
+ img.src = src;
+ });
+}
+
+function closeBenefits(){
+ fragileBenefits.forEach(el => {
+ el.style.display = 'none';
+ });
+}
+
+function showAddToCart() {
+ hideSubscribe();
+ const firstDiv = document.querySelector('.product-form__buttons');
+ if (firstDiv) firstDiv.style.display = "";
+ const secondDiv = document.querySelector('.product__block--buy_buttons');
+ if (secondDiv) {
+ secondDiv.style.display = "";
+ secondDiv.classList.remove("hidden")
+ }
+ console.log(firstDiv)
+ console.log(secondDiv)
+}
+
+function showSubscribe() {
+ if (subscribeBtn) subscribeBtn.style.display = "";
+}
+
+function hideSubscribe() {
+ if (subscribeBtn) subscribeBtn.style.display = "none";
+}
+
+function updateButtons() {
+ if (subscribeRadio?.checked) {
+ showSubscribe();
+ } else {
+ hideSubscribe();
+ showAddToCart();
+ }
+}
+
+function applySelection(optionValue, skipSave = false) {
+  console.log('🎯 Applying selection:', optionValue);
+  
+  bundleRadio.checked = false;
+  purchaseRadio.checked = false;
+  subscribeRadio.checked = false;
+  
+  switch(optionValue) {
+    case 'bundle':
+      bundleRadio.checked = true;
+      closeBenefits();
+      if (selectedOption) selectedOption.classList.remove('selected');
+      swapMainMedia({{ bundle_img_src|json }});
+      hideStickyATC();
+      break;
+      
+    case 'purchase':
+      purchaseRadio.checked = true;
+      swapMainMedia(originalMedia);
+      showstickyATC();
+      break;
+      
+    case 'subscribe':
+      subscribeRadio.checked = true;
+      swapMainMedia(originalMedia);
+      showstickyATC();
+      break;
+  }
+  
+  updateButtons();
+  
+  if (!skipSave) {
+    saveSelectedOption(optionValue);
+  }
+}
+
+const savedOption = getSelectedOption();
+applySelection(savedOption, true);
+
+bundleRadio.addEventListener('click', function () {
+ if (this.checked) {
+ console.log('[BUNDLE] clicked and selected', this.checked);
+ applySelection('bundle');
+ }
+});
+
+purchaseOptionDiv?.addEventListener('click', function () {
+ console.log('purchase clicked')
+ if (purchaseRadio) {
+ console.log('purchase condition')
+ applySelection('purchase');
+ }
+});
+
+subscribeOptionDiv?.addEventListener('click', function () {
+ console.log('subscribe clicked')
+ if (subscribeRadio) {
+ applySelection('subscribe');
+ }
+});
+
+purchaseRadio.addEventListener('change', function() {
+  if (this.checked) {
+    applySelection('purchase');
+  }
+});
+
+subscribeRadio.addEventListener('change', function() {
+  if (this.checked) {
+    applySelection('subscribe');
+  }
+});
+
+const productForm = document.querySelector('form[action*="/cart/add"]');
+if (!productForm) return;
+const variantIdInput = productForm.querySelector('[name="id"]');
+if (!variantIdInput) return;
+
+let currentVariantId = Number(variantIdInput.value) || null;
+window.currentVariantId = currentVariantId;
+console.log('Initial variant ID:', currentVariantId);
+
+let isChangingVariant = false;
+
+const observer = new MutationObserver(() => {
+  const newId = Number(variantIdInput.value);
+  if (!newId || newId === currentVariantId) return;
+  
+  isChangingVariant = true;
+  currentVariantId = newId;
+  window.currentVariantId = newId;
+  console.log('Variant updated →', newId);
+  
+  (function initBundleThumb() {
+    console.log('change img for variant');
+    if (currentVariantId === 52955689320814) {
+      console.log('champagne variant');
+      let imgSrc = "https://cdn.shopify.com/s/files/1/0073/0231/6068/files/NIRA_Champagne_1500x1500_cf8319fd-520a-4386-9fd3-be29c976576d.png?v=1762526772";
+      changeMainThumb(imgSrc);
+      if (bundleRadio.checked) {
+        swapMainMedia(imgSrc);
+      }
+      changeAllThumbs(imgSrc);
+    } else {
+      changeMainThumb({{ bundle_img_src | json }});
+      changeAllThumbs(originalMedia);
+      if (bundleRadio.checked) {
+        swapMainMedia({{ bundle_img_src | json }});
+      }
+    }
+  })();
+  
+  const currentSelection = getSelectedOption();
+  console.log('🔄 Maintaining selection after variant change:', currentSelection);
+  
+  setTimeout(() => {
+    applySelection(currentSelection, true);
+    isChangingVariant = false;
+  }, 100);
+});
+
+observer.observe(variantIdInput, {
+ attributes: true,
+ attributeFilter: ['value']
+});
+
+const EXTRA_VARIANT_ID = 41296162684964;
+const selling_plan_id = 691889275246;
+
+document.addEventListener('click', function (e) {
+  const product_id = currentVariantId;
+  const btn = e.target.closest('.product-form__submit');
+  if (!btn) return;
+  if (!bundleRadio.checked) return;
+  
+  e.preventDefault();
+  const form = btn.closest('form');
+  const qty = 1;
+  const payload = {
+    items: [
+      {
+        id: EXTRA_VARIANT_ID,
+        quantity: 1,
+        ...(selling_plan_id ? { selling_plan: selling_plan_id } : {})
+      },
+      {
+        id: product_id,
+        quantity: qty
+      }
+    ]
+  };
+  
+  fetch('/cart/add.js', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  .then(r => r.json())
+  .then(() => {
+    console.log('✅ Bundle added to cart');
+    if (window.theme && window.theme.openCart) {
+      window.theme.openCart();
+    }
+  })
+  .catch(err => {
+    console.error('❌ Error adding to cart:', err);
+  });
+});
+
+});
+</script>
